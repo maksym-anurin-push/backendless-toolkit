@@ -1,0 +1,7 @@
+target/
+.var/
+
+*.local*
+
+.DS_Store
+.env

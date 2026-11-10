@@ -1,0 +1,26 @@
+[package]
+name = "backendless_toolkit_runtime"
+authors.workspace = true
+description.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+version.workspace = true
+
+[dependencies]
+async-trait = "0.1"
+axum = { version = "0.7", features = ["ws"] }
+backendless_toolkit_contract = { workspace = true }
+bs58 = "0.5"
+chrono = "0.4"
+futures = "0.3"
+freemework_abstractions = { version = "=0.1.0-dev.4f62297a0593ebd689f4f8e568c7930e86a2012f", registry = "freemework" }
+include_dir = "0.7"
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+serde_yaml = "0.9"
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.5", features = ["trace", "cors"] }
+tokio-util = "0.7"

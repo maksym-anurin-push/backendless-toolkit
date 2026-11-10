@@ -1,0 +1,22 @@
+[workspace]
+
+resolver = "2"
+
+members = [
+    "backendless_toolkit_bin",
+    "backendless_toolkit_runtime",
+]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Maksym Anurin"]
+edition = "2024"
+description = "TBD"
+documentation = "TBD"
+license-file = "LICENSE"
+publish = ["MIT"]
+
+[workspace.dependencies]
+backendless_toolkit_bin = { version = "0.1.0", path = "backendless_toolkit_bin" }
+backendless_toolkit_contract = { version = "0.1.0", path = "backendless_toolkit_contract" }
+backendless_toolkit_runtime = { version = "0.1.0", path = "backendless_toolkit_runtime" }

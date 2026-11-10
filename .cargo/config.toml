@@ -1,0 +1,12 @@
+[target.armv7-unknown-linux-gnueabihf]
+linker = "tools/linker-zig-cc-armv7.sh"
+rustflags = [
+    "-Clink-arg=-target",
+    "-Clink-arg=arm-linux-gnueabihf",
+]
+
+[registries.cvyntar]
+index = "sparse+https://gitea.anurin.name/api/packages/cvyntar/cargo/"
+
+[registries.freemework]
+index = "sparse+https://gitea.anurin.name/api/packages/freemework/cargo/"
