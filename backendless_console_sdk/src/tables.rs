@@ -196,11 +196,114 @@ impl ConsoleClient {
 
     /// Find a single table by name (case-sensitive).
     pub async fn get_table(&self, app_id: &str, table_name: &str) -> Result<TableInfo> {
-        let tables = self.list_tables(app_id).await?;
-        tables
-            .into_iter()
-            .find(|t| t.name == table_name)
+        self.try_get_table(app_id, table_name)
+            .await?
             .ok_or_else(|| Error::TableNotFound(table_name.to_string()))
+    }
+
+    /// Like [`get_table`], but returns `None` when the table is missing.
+    pub async fn try_get_table(
+        &self,
+        app_id: &str,
+        table_name: &str,
+    ) -> Result<Option<TableInfo>> {
+        let tables = self.list_tables(app_id).await?;
+        Ok(tables.into_iter().find(|t| t.name == table_name))
+    }
+
+    fn table_columns_path(app_id: &str, table_name: &str) -> String {
+        format!(
+            "{app_id}/console/data/tables/{}/columns",
+            urlencoding_path_segment(table_name)
+        )
+    }
+
+    fn column_type_url_suffix(data_type: Option<&str>) -> Option<&'static str> {
+        match data_type {
+            Some(data_types::DATA_REF) => Some("relation"),
+            Some(data_types::GEO_REF) => Some("georelation"),
+            _ => None,
+        }
+    }
+
+    /// Create an empty data table (`POST /{appId}/console/data/tables`).
+    pub async fn create_table(&self, app_id: &str, name: &str) -> Result<TableInfo> {
+        let path = Self::tables_path(app_id);
+        let body = serde_json::json!({ "name": name });
+        let value: Value = self
+            .request_json(Method::POST, &path, Some(&body), true)
+            .await?;
+        Ok(normalize_table(serde_json::from_value(value)?))
+    }
+
+    /// Create a column (or relation column).
+    ///
+    /// `POST .../tables/{table}/columns` or `.../columns/relation|georelation`.
+    pub async fn create_column(
+        &self,
+        app_id: &str,
+        table_name: &str,
+        column: &Value,
+    ) -> Result<Value> {
+        let data_type = column.get("dataType").and_then(|v| v.as_str());
+        let mut path = Self::table_columns_path(app_id, table_name);
+        if let Some(suffix) = Self::column_type_url_suffix(data_type) {
+            path.push('/');
+            path.push_str(suffix);
+        }
+        self.request_json(Method::POST, &path, Some(column), true)
+            .await
+    }
+
+    /// Update a column. `prev_data_type` selects the URL suffix (relation vs name).
+    pub async fn update_column(
+        &self,
+        app_id: &str,
+        table_name: &str,
+        prev_data_type: Option<&str>,
+        prev_column_name: &str,
+        column: &Value,
+    ) -> Result<Value> {
+        let suffix = Self::column_type_url_suffix(prev_data_type)
+            .map(str::to_string)
+            .unwrap_or_else(|| urlencoding_path_segment(prev_column_name));
+        let path = format!(
+            "{}/{}",
+            Self::table_columns_path(app_id, table_name),
+            suffix
+        );
+        self.request_json(Method::PUT, &path, Some(column), true)
+            .await
+    }
+
+    /// Delete a column by name (relation types use `/relation/{name}` paths).
+    pub async fn delete_column(
+        &self,
+        app_id: &str,
+        table_name: &str,
+        column_name: &str,
+        data_type: Option<&str>,
+    ) -> Result<()> {
+        let encoded = urlencoding_path_segment(column_name);
+        let path = if let Some(suffix) = Self::column_type_url_suffix(data_type) {
+            format!(
+                "{}/{}/{}",
+                Self::table_columns_path(app_id, table_name),
+                suffix,
+                encoded
+            )
+        } else {
+            format!("{}/{}", Self::table_columns_path(app_id, table_name), encoded)
+        };
+        let _: Value = self
+            .request_json(Method::DELETE, &path, None::<&()>, true)
+            .await
+            .or_else(|err| match err {
+                // Some Console builds return empty body on DELETE.
+                Error::Json(_) => Ok(Value::Null),
+                other => Err(other),
+            })?;
+        Ok(())
     }
 
     /// Fetch one page of records from a table.
@@ -302,6 +405,10 @@ mod tests {
         assert_eq!(
             ConsoleClient::tables_path("APP-ID"),
             "APP-ID/console/data/tables"
+        );
+        assert_eq!(
+            ConsoleClient::table_columns_path("APP", "My Table"),
+            "APP/console/data/tables/My%20Table/columns"
         );
     }
 

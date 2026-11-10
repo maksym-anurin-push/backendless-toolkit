@@ -31,4 +31,7 @@ cargo build --locked --bin backendless-toolkit-db
 ./target/debug/backendless-toolkit-db show_tables
 ./target/debug/backendless-toolkit-db dump_table_structure MyTable
 ./target/debug/backendless-toolkit-db dump_table_data MyTable
+cat MyTable.yaml | ./target/debug/backendless-toolkit-db restore_table_structure MyTable --dry-run
+cat MyTable.yaml | ./target/debug/backendless-toolkit-db restore_table_structure MyTable
+cat MyTable.yaml | ./target/debug/backendless-toolkit-db restore_table_structure MyTable --apply-required-flag --delete-obsolete-columns
 ```
