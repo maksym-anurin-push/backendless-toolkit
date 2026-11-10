@@ -21,3 +21,14 @@ cargo build --locked
 cargo test --frozen
 cargo run --frozen --package grai_registry_bin -- --backendless.1.url=https://eu-api.backendless.com --backendless.2.url=https://api-bl-k8s.baelab.net 
 ```
+
+## Database CLI
+
+Configure Console credentials in `.env` (see `.env-example`), then:
+
+```shell
+cargo build --locked --bin backendless-toolkit-db
+./target/debug/backendless-toolkit-db show_tables
+./target/debug/backendless-toolkit-db dump_table_structure MyTable
+./target/debug/backendless-toolkit-db dump_table_data MyTable
+```

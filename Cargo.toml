@@ -3,6 +3,7 @@
 resolver = "2"
 
 members = [
+    "backendless_console_sdk",
     "backendless_toolkit_bin",
     "backendless_toolkit_runtime",
 ]
@@ -17,6 +18,7 @@ license-file = "LICENSE"
 publish = ["MIT"]
 
 [workspace.dependencies]
+backendless_console_sdk = { version = "0.1.0", path = "backendless_console_sdk" }
 backendless_toolkit_bin = { version = "0.1.0", path = "backendless_toolkit_bin" }
 backendless_toolkit_contract = { version = "0.1.0", path = "backendless_toolkit_contract" }
 backendless_toolkit_runtime = { version = "0.1.0", path = "backendless_toolkit_runtime" }
