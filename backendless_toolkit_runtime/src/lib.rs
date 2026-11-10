@@ -1,5 +1,6 @@
 pub mod application;
 pub mod domain;
+pub mod mcp;
 mod infrastructure;
 
 mod compositor {

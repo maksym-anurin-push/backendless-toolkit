@@ -12,6 +12,10 @@ version.workspace = true
 name = "backendless-toolkit"
 path = "src/daemon.rs"
 
+[[bin]]
+name = "backendless-toolkit-mcp"
+path = "src/mcp.rs"
+
 [dependencies]
 base64 = "0.22"
 env_logger = "0.11"
@@ -20,7 +24,7 @@ backendless_toolkit_runtime = { workspace = true }
 freemework_abstractions = { version = "=0.1.0-dev.4f62297a0593ebd689f4f8e568c7930e86a2012f", registry = "freemework" }
 freemework_common = { version = "=0.1.0-dev.4f62297a0593ebd689f4f8e568c7930e86a2012f", registry = "freemework" }
 log = "0.4"
-tokio = { version = "1.0", features = ["macros"] }
+tokio = { version = "1.0", features = ["macros", "rt"] }
 tokio-util = { version = "0.7", features = [] }
 
 [build-dependencies]
