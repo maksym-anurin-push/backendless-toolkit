@@ -40,13 +40,13 @@ impl ConsoleClient {
             .await?;
 
         let auth_key_header = response
-            .headers()
+            .headers
             .get("auth-key")
             .and_then(|v| v.to_str().ok())
             .map(str::to_owned);
 
-        let status = response.status();
-        let body_text = response.text().await?;
+        let status = response.status;
+        let body_text = response.body;
 
         if !status.is_success() {
             if let Ok(fault) = serde_json::from_str::<ApiFault>(&body_text) {

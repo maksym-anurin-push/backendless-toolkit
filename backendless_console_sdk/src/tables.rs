@@ -101,7 +101,15 @@ pub const DEFAULT_PAGE_SIZE: u32 = 100;
 
 /// Mirrors `DataTypes` from backendless-console-sdk.
 pub mod data_types {
+    pub const INT: &str = "INT";
+    pub const DOUBLE: &str = "DOUBLE";
     pub const BOOLEAN: &str = "BOOLEAN";
+    pub const STRING: &str = "STRING";
+    pub const DATETIME: &str = "DATETIME";
+    pub const TEXT: &str = "TEXT";
+    pub const STRING_ID: &str = "STRING_ID";
+    pub const EXTENDED_STRING: &str = "EXTENDED_STRING";
+    pub const LARGE_TEXT: &str = "LARGE_TEXT";
     pub const DATA_REF: &str = "DATA_REF";
     pub const GEO_REF: &str = "GEO_REF";
 }
@@ -304,6 +312,76 @@ impl ConsoleClient {
                 other => Err(other),
             })?;
         Ok(())
+    }
+
+    /// Bulk create-or-update records.
+    ///
+    /// `PUT /{appId}/console/data/bulkupsert/{tableName}`
+    pub async fn bulk_upsert_records(
+        &self,
+        app_id: &str,
+        table_name: &str,
+        records: &[Value],
+    ) -> Result<Value> {
+        let path = format!(
+            "{app_id}/console/data/bulkupsert/{}",
+            urlencoding_path_segment(table_name)
+        );
+        self.request_json(Method::PUT, &path, Some(&records), true)
+            .await
+    }
+
+    /// Create a record (Console UI "Add New" path).
+    ///
+    /// `POST /{appId}/console/data/{tableName}`
+    pub async fn create_record(
+        &self,
+        app_id: &str,
+        table_name: &str,
+        record: &Value,
+    ) -> Result<Value> {
+        let path = format!(
+            "{app_id}/console/data/{}",
+            urlencoding_path_segment(table_name)
+        );
+        self.request_json(Method::POST, &path, Some(record), true)
+            .await
+    }
+
+    /// Update an existing record (Console UI save path).
+    ///
+    /// `PUT /{appId}/console/data/{tableName}/{objectId}`
+    pub async fn put_record(
+        &self,
+        app_id: &str,
+        table_name: &str,
+        object_id: &str,
+        record: &Value,
+    ) -> Result<Value> {
+        let path = format!(
+            "{app_id}/console/data/{}/{}",
+            urlencoding_path_segment(table_name),
+            urlencoding_path_segment(object_id)
+        );
+        self.request_json(Method::PUT, &path, Some(record), true)
+            .await
+    }
+
+    /// Whether a row with this `objectId` exists (Console find, page size 1).
+    pub async fn record_exists(
+        &self,
+        app_id: &str,
+        table_name: &str,
+        object_id: &str,
+    ) -> Result<bool> {
+        let escaped = object_id.replace('\'', "''");
+        let query = FindQuery {
+            page_size: 1,
+            offset: 0,
+            where_clause: Some(format!("objectId = '{escaped}'")),
+        };
+        let rows = self.find_records(app_id, table_name, &query).await?;
+        Ok(!rows.is_empty())
     }
 
     /// Fetch one page of records from a table.
